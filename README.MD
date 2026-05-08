@@ -10,6 +10,8 @@ Also, depending on where you are, you may legally be required to to let it do th
 
 The program for recieving uses a lot of local libraries included in this repo. Those should work no problem. You may need to run the following to install all other libraries though:
 
-```pip3 install numpy sounddevice soundfile --break-system-packages```
+```pip3 install numpy sounddevice soundfile --break-system-packages``` *
 
 Then run `python3 recieve.py` or `python3 sendmail.py` depending on what you want to do. Be sure not to interrupt any nets or anything with this obviously because people won't like you (RTTY is very annoying).
+
+* The option `--break-system-packages` is required for me (Debian 13). May not be required for other enviroments.
