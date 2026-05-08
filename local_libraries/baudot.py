@@ -40,6 +40,8 @@ def decode_baudot(five_bits):
 	if code == '11011':  # FIGS
 		mode = 1
 		return ''
+#	table = BAUDOT_LETTERS if mode == 0 else BAUDOT_FIGURES
+#	return table.get(code, '')
 	mode_name = 'letters' if mode == 0 else 'figures'
 	for char, wrapped in BAUDOT[mode_name].items():
 		if wrapped[2:7] == code:

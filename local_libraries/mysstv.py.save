@@ -1,0 +1,33 @@
+import numpy as np
+import io
+import queue
+import sounddevice as sd
+import soundfile as sf
+from sstv_library.sstv import SSTVDecoder
+
+q = queue.Queue()
+def callback(indata, frames, time, status):
+    q.put(indata[:, 0].copy())
+
+class FakeBuf:
+    def readframes(self, n):
+        chunk = q.get()
+        # convert float32 [-1,1] to uint8 [0,255] to match original buf[0]-128
+        return ((chunk * 128) + 128).astype(np.uint8)
+    def getnframes(self):
+        return 999999999
+
+chunks = []
+audio = np.concatenate(chunks)
+buf = io.BytesIO()
+sf.write(buf, audio, SAMPLE_RATE, format='WAV')
+buf.seek(0)
+
+with SSTVDecoder(buf) as decoder:
+	img = decoder.decode()
+	if img is None:
+		print("No SSTV signal found in audio file")
+	img.save("attachement.png")
+
+with sd.InputStream(samplerate=44100, channels=2, dtype='float32', blocksize=1, callback=callback):
+        waveFile = FakeBuf()
