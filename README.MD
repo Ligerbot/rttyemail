@@ -35,3 +35,5 @@ Selective Email Reception (Only showing emails addressed to your callsign)
 SnackMail email address that forwards emails from ham radio to internet (would require a base station connected to a computer that is always on).
 
 Email me (ilan@snackmail.cc) if you have any ideas.
+
+Play image attachments using SSTV?
