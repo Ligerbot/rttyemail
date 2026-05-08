@@ -1,3 +1,4 @@
+import email
 import local_libraries.baudot as baudot
 import os
 import wave
@@ -30,8 +31,19 @@ duration = 99999999999999999999999999999
 #	global wav
 #	wav = indata[:, 0]
 #	print(str(indata[:, 0]))
-decodedemail = []
+def toEmail(text):
+	decodedeml = email.message_from_string(text)
+	msg = decodedeml
+	print("\n")
+	print("\n")
+	print("Recieved the following email:")
+	print(msg['From'])
+	print(msg['To'])
+	print(msg['Subject'])
+	print(msg.get_payload())
+	print("Done decoding email")
 def decode(waveFile):
+	decodedemail = []
 	fivebitbytethingy = []
 	in_frame = False
 	frame_bits = []
@@ -73,7 +85,16 @@ def decode(waveFile):
 #							end = "\n"
 #						else:
 #							end = ""
+						decodedemail = str(decodedemail) + str(char)
 						print(char, end = "", flush=True)
+						if "---END  RTTY  EMAIL---" in decodedemail:
+							toEmail(decodedemail)
+							decodedemail = []
+						else:
+							pass
+						if "---START  RTTY  EMAIL---" in decodedemail:
+							decodedemail = decodedemail.strip("---START  RTTY  EMAIL---")
+							print("Recieving possible email now")
 					in_frame = False
 					frame_bits = []
 		if j>wind:
