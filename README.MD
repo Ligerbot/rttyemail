@@ -15,3 +15,23 @@ The program for recieving uses a lot of local libraries included in this repo. T
 Then run `python3 recieve.py` or `python3 sendmail.py` depending on what you want to do. Be sure not to interrupt any nets or anything with this obviously because people won't like you (RTTY is very annoying).
 
 * The option `--break-system-packages` is required for me (Debian 13). May not be required for other enviroments.
+
+## Still to do
+
+Make it remember your callsign
+
+Contacts list?
+
+Integrate it with Thunderbird?
+
+Better encoding than RTTY?
+
+Error Correction?
+
+GUI or TUI
+
+Selective Email Reception (Only showing emails addressed to your callsign)
+
+SnackMail email address that forwards emails from ham radio to internet (would require a base station connected to a computer that is always on).
+
+Email me (ilan@snackmail.cc) if you have any ideas.
