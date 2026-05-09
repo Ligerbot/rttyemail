@@ -1,9 +1,11 @@
-#import local_libraries.mysstv #not pysstv, MY sstv!
+import time
+import local_libraries.mysstv as mysstv #not pysstv, MY sstv!
 import email
 import local_libraries.baudot as baudot
 import os
 import wave
 import numpy as np
+import soundfile as sf
 import sounddevice as sd
 import queue
 #credit to imaoca on github for the decoder that I modified: https://github.com/imaoca/RTTY/
@@ -33,10 +35,10 @@ duration = 99999999999999999999999999999
 #	global wav
 #	wav = indata[:, 0]
 #	print(str(indata[:, 0]))
-#chunks = []
+chunks = []
 
-#def callback2(indata, frames, time, status):
-#    chunks.append(indata[:, 0].copy())
+def callback2(indata, frames, time, status):
+    chunks.append(indata[:, 0].copy())
 
 def toEmail(text):
 	decodedeml = email.message_from_string(text)
@@ -89,6 +91,17 @@ def decode(waveFile):
 						if "---START  RTTY  EMAIL---" in decodedemail:
 							decodedemail = decodedemail.strip("---START  RTTY  EMAIL---")
 							print("Receiving possible email now")
+						if "-SSTV  SIGNAL  ATTACHED-" in decodedemail:
+							stream = sd.InputStream(samplerate=44100, channels=1, dtype='float32', callback=callback2)
+							stream.start()
+							print("Listening for SSTV signal. If there is none, restart program and try recieving again.")
+							time.sleep(40)
+							stream.stop()
+							audio = np.concatenate(chunks)
+							sf.write('local_libraries/output.wav', audio, 44100)
+							mysstv.decode()
+							print("Check for attachment.png in the working directory")
+
 					bit_pos += 8
 				else:
 					bit_pos += 1

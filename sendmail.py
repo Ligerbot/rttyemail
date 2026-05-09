@@ -1,7 +1,7 @@
 import numpy as np
-#import pysstv.color as pysstv
-#import PIL
-#import PIL.Image
+import pysstv.color as pysstv
+import PIL
+import PIL.Image
 import sounddevice as sd
 import soundfile as sf
 import local_libraries.pyrtty as pyrtty
