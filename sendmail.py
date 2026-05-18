@@ -1,7 +1,7 @@
 import numpy as np
-import pysstv.color as pysstv
-import PIL
-import PIL.Image
+#import pysstv.color as pysstv
+#import PIL
+#import PIL.Image
 import sounddevice as sd
 import soundfile as sf
 import local_libraries.pyrtty as pyrtty
@@ -11,8 +11,19 @@ import time
 
 msg = EmailMessage()
 
+speakerhz=input("How many HZ is your primary speaker? Type 'help' for help.")
+if speakerhz == "help":
+	print("if you use windows, open control panel")
+	print("click hardware and sound > sound")
+	print("double click your primary speaker")
+	print("			your primary speaker is the one selected if you press win+ctl+v as output device")
+	print("select 'advanced' at the top")
+	print("to the left of the test button, there is some speaker info")
+	speakerhz = input("How many HZ is the speaker?		")
+
+
 print("Composing RTTY email")
-msg['From'] = input("Callsign: ")
+msg['From'] = input("your callsign, enter your callsign here. It will be included with your message.")
 msg['To'] = input("Callsign to send email too: ")
 msg['Subject'] = input("Subject: ")
 msg['Date'] = email.utils.formatdate(localtime=True)
@@ -34,7 +45,7 @@ if attachments == "y":
 	prompts = input("Show image(y/n)? ")
 	if prompts == "y":
 		image.show()
-	converted = pysstv.Robot36(image, 44100, 16)
+	converted = pysstv.Robot36(image, speakerhz, 16)
 	samples = list(converted.gen_samples())
 	sstv = np.array(samples, dtype=np.int16)
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
@@ -47,9 +58,10 @@ pyrtty.play_afsk_signal(signal)
 time.sleep(0.5)
 if attachments == "y":
 	print("Playing SSTV now")
-	sd.play(sstv, 44100)
+	sd.play(sstv, speakerhz)
 	sd.wait()
 print("Playing morse code with link to github. May be required by law to show how it works so people can decode it")
+ # this is the link to the original github, w/out speaker hz modification, etc.
 data, samplerate = sf.read('protocol_specifications_link.wav')
 sd.play(data, samplerate)
 sd.wait()
