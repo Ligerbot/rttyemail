@@ -4,12 +4,11 @@ import PIL
 import PIL.Image
 import sounddevice as sd
 import soundfile as sf
-#import local_libraries.pyrtty as pyrtty
-import fskmodem #sudo apt install minimodem then install through pip3
+import local_libraries.pyrtty as pyrtty
 from email.message import EmailMessage
 import email.utils
 import time
-modem = fskmodem.Modem(baudrate=1200)
+
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -41,20 +40,10 @@ if attachments == "y":
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
 email = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
 print("Sending the following email over RTTY now: \n" + email)
-
-#modem.send(email.as_bytes())
-
-bitsofemail = len(email) * 10
-timeOfTX = bitsofemail / 1200
-
-modem.send(email.encode("utf-8"))
-time.sleep(timeOfTX + 1)
-print("Done")
-
 #print(msg.as_string())
-#baudot = pyrtty.text_to_baudot(email)
-#signal = pyrtty.baudot_to_afsk(baudot)
-#pyrtty.play_afsk_signal(signal)
+baudot = pyrtty.text_to_baudot(email)
+signal = pyrtty.baudot_to_afsk(baudot)
+pyrtty.play_afsk_signal(signal)
 time.sleep(0.5)
 if attachments == "y":
 	print("Playing SSTV now")
