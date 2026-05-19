@@ -2,7 +2,7 @@
 
 This is two python programs that recieve and send emails using FSK (Frequency Shift Keying). If you followed the bit.ly link sent in morse code after a transmission over the air, an email over the air would be appreciated.
 
-Note: This isn't error tolerant at all. If a bit gets flipped it won't fix it. Don't expect it to work unless you have a good signal and no noise or anything messing up the reciever.
+This is almost error tolerant. It can correct any errors besides ones that mess up the beginning and end.
 
 It is a good practice to let anyone listening in on your transmission be able to decode it too, so it is recomended to let it play the morse code after sending an email so that anyone listening can run this themselves.
 
