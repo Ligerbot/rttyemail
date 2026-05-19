@@ -2,15 +2,13 @@ import fskmodem
 import time
 import local_libraries.mysstv as mysstv #not pysstv, MY sstv!
 import email
-import local_libraries.baudot as baudot
 import os
-import wave
-import numpy as np
 import soundfile as sf
 import sounddevice as sd
 import queue
 
-modem = fskmodem.Modem(baudrate=1200, start=False)
+modem = fskmodem.Modem(baudrate=300, confidence = 1.0, start=False)
+modem.MTU = 10000
 
 def callback(sounddataa):
 	decoded = sounddataa.decode("utf-8")

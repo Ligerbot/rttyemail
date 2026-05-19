@@ -9,7 +9,7 @@ import fskmodem #sudo apt install minimodem then install through pip3
 from email.message import EmailMessage
 import email.utils
 import time
-modem = fskmodem.Modem(baudrate=1200)
+modem = fskmodem.Modem(baudrate=300)
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -39,13 +39,15 @@ if attachments == "y":
 	samples = list(converted.gen_samples())
 	sstv = np.array(samples, dtype=np.int16)
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
-email = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
+preamble = "\x23" * 32 #important otherwise it won't decode right.
+
+email = preamble + "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
 print("Sending the following email over RTTY now: \n" + email)
 
 #modem.send(email.as_bytes())
 
 bitsofemail = len(email) * 10
-timeOfTX = bitsofemail / 1200
+timeOfTX = bitsofemail / 300
 
 modem.send(email.encode("utf-8"))
 time.sleep(timeOfTX + 1)
