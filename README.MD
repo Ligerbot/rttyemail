@@ -1,7 +1,5 @@
 # RTTY Email
 
-## First priority is making FSK decoder work
-
 This is two python programs that recieve and send emails using a ham radio digital mode called RTTY. If you followed the bit.ly link sent in morse code after a transmission, feel free to send an email or just recieve. Instructions to run these programs are included below.
 
 Note: This isn't error tolerant at all. If a bit gets flipped it won't fix it. Don't expect it to work unless you have a good signal and no noise or anything messing up the reciever.
@@ -25,8 +23,6 @@ Make it remember your callsign
 Contacts list?
 
 Integrate it with Thunderbird?
-
-Better encoding than RTTY?
 
 Error Correction?
 
