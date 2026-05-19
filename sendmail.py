@@ -1,3 +1,4 @@
+import subprocess
 import reedsolo
 import numpy as np
 import pysstv.color as pysstv
@@ -11,8 +12,19 @@ from email.message import EmailMessage
 import email.utils
 import time
 
+def transmit(text):
+	global proc
+	proc = subprocess.Popen(
+		['minimodem', '--tx', '300'],
+		stdin=subprocess.PIPE,
+		stderr=subprocess.DEVNULL
+	)
+	proc.stdin.write(text)
+	proc.stdin.close()
+	proc.wait()
+
 modem = fskmodem.Modem(baudrate=125)
-rsc = reedsolo.RSCodec(100) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -44,32 +56,32 @@ if attachments == "y":
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
 preamble = b"\x23" * 32 #important otherwise it won't decode right.
 #intermediate = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
-intermediate = "---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
+intermediate = "!>!>!>---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
 
-reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")).hex().encode("utf-8") #error correction
-email = preamble + reedsoloedEmail
+reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
+email = preamble + reedsoloedEmail + "!<!<!<".encode("utf-8")
 
 print("Sending the following email over RTTY now: \n" + str(email))
 
 #modem.send(email.as_bytes())
 
-bitsofemail = len(email) * 10
-timeOfTX = bitsofemail / 125
-
-modem.send(email)
-time.sleep(timeOfTX + 1)
-print("Done")
+#modem.send(email)
+try:
+	transmit(email)
+	print("Done")
 
 #print(msg.as_string())
 #baudot = pyrtty.text_to_baudot(email)
 #signal = pyrtty.baudot_to_afsk(baudot)
 #pyrtty.play_afsk_signal(signal)
-time.sleep(0.5)
-if attachments == "y":
-	print("Playing SSTV now")
-	sd.play(sstv, 44100)
-	sd.wait()
+	time.sleep(0.5)
+	if attachments == "y":
+		print("Playing SSTV now")
+		sd.play(sstv, 44100)
+		sd.wait()
 #print("Playing morse code with link to github. May be required by law to show how it works so people can decode it")
 #data, samplerate = sf.read('protocol_specifications_link.wav')
 #sd.play(data, samplerate)
 #sd.wait()
+finally:
+	proc.terminate()

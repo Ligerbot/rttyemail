@@ -1,3 +1,4 @@
+import subprocess
 import reedsolo #reed solomon error correction
 import local_libraries.fskmodem as fskmodem
 import time
@@ -9,9 +10,36 @@ import sounddevice as sd
 import queue
 
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
-rsc = reedsolo.RSCodec(100)
+rsc = reedsolo.RSCodec(20, c_exp=7)
 #modem.MTU = 10000
 
+def listenforemail():
+	global proc
+	proc = subprocess.Popen(
+		['minimodem', '--rx', '300', '--confidence', '0.1', '--sync-byte', '0x23', '-q'],
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL
+	)
+	char = b""
+	while not b"!<" in char:
+		char = char + proc.stdout.read(1) #.decode("utf-8", errors="replace"))
+		if b"!>" in char:
+			print("Recieving Frame")
+			char = b""
+	proc.terminate() #clean up
+	print(str(char))
+	char = char.decode("utf-8", errors="backslashreplace").encode("utf-8")
+	print(str(char))
+	stripped = char.replace(b"!<", b"").replace(b">!", b"")
+	print(stripped.decode("utf-8", errors="ignore"))
+	fixed = rsc.decode(stripped)[0]
+	print("Fixed: " + str(fixed).decode("utf-8"))
+#	print(str(fixed.decode("utf-8")))
+try:
+	listenforemail()
+finally:
+	print("Killing off minimodem")
+	proc.terminate()
 def callback(sounddataa):
 	sounddataa = sounddataa.lstrip(b'\x23')
 	unhexed = bytes.fromhex(sounddataa.decode("utf-8"))
