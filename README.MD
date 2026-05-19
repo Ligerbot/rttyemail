@@ -10,7 +10,9 @@ It is a good practice to let anyone listening in on your transmission be able to
 
 You **will** need the software `minimodem`. On Debian 13 you can just run `sudo apt install minimodem`, but it depends on your operating system.
 
-Then run `python3 recieve.py` or `python3 sendmail.py` depending on what you want to do. Be sure not to interrupt any nets or anything with this obviously because people definetly won't like you.
+Then run `python3 recieve.py` or `python3 sendmail.py` depending on what you want to do.
+
+In case it isn't already obvious, don't do this over a repeater or during a net because people will hate you.
 
 ## Still to do
 

@@ -1,3 +1,4 @@
+import reedsolo
 import numpy as np
 import pysstv.color as pysstv
 import PIL
@@ -5,11 +6,13 @@ import PIL.Image
 import sounddevice as sd
 import soundfile as sf
 #import local_libraries.pyrtty as pyrtty
-import fskmodem #sudo apt install minimodem then install through pip3
+import local_libraries.fskmodem as fskmodem #sudo apt install minimodem first though
 from email.message import EmailMessage
 import email.utils
 import time
-modem = fskmodem.Modem(baudrate=300)
+
+modem = fskmodem.Modem(baudrate=125)
+rsc = reedsolo.RSCodec(100) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -39,17 +42,21 @@ if attachments == "y":
 	samples = list(converted.gen_samples())
 	sstv = np.array(samples, dtype=np.int16)
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
-preamble = "\x23" * 32 #important otherwise it won't decode right.
+preamble = b"\x23" * 32 #important otherwise it won't decode right.
+#intermediate = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
+intermediate = "---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
 
-email = preamble + "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
-print("Sending the following email over RTTY now: \n" + email)
+reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")).hex().encode("utf-8") #error correction
+email = preamble + reedsoloedEmail
+
+print("Sending the following email over RTTY now: \n" + str(email))
 
 #modem.send(email.as_bytes())
 
 bitsofemail = len(email) * 10
-timeOfTX = bitsofemail / 300
+timeOfTX = bitsofemail / 125
 
-modem.send(email.encode("utf-8"))
+modem.send(email)
 time.sleep(timeOfTX + 1)
 print("Done")
 
@@ -62,7 +69,7 @@ if attachments == "y":
 	print("Playing SSTV now")
 	sd.play(sstv, 44100)
 	sd.wait()
-print("Playing morse code with link to github. May be required by law to show how it works so people can decode it")
-data, samplerate = sf.read('protocol_specifications_link.wav')
-sd.play(data, samplerate)
-sd.wait()
+#print("Playing morse code with link to github. May be required by law to show how it works so people can decode it")
+#data, samplerate = sf.read('protocol_specifications_link.wav')
+#sd.play(data, samplerate)
+#sd.wait()

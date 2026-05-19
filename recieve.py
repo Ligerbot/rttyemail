@@ -1,4 +1,5 @@
-import fskmodem
+import reedsolo #reed solomon error correction
+import local_libraries.fskmodem as fskmodem
 import time
 import local_libraries.mysstv as mysstv #not pysstv, MY sstv!
 import email
@@ -7,17 +8,21 @@ import soundfile as sf
 import sounddevice as sd
 import queue
 
-modem = fskmodem.Modem(baudrate=300, confidence = 1.0, start=False)
-modem.MTU = 10000
+modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
+rsc = reedsolo.RSCodec(100)
+#modem.MTU = 10000
 
 def callback(sounddataa):
-	decoded = sounddataa.decode("utf-8")
-	print("Debug output: " + decoded)
-	if "-SSTV  SIGNAL  ATTACHED-" in decoded:
-		#to be implemented
+	sounddataa = sounddataa.lstrip(b'\x23')
+	unhexed = bytes.fromhex(sounddataa.decode("utf-8"))
+	print(unhexed)
+	corrected = rsc.decode(unhexed)[0].decode("utf-8")
+	print("Debug output: " + corrected)
+	if "-SSTV  SIGNAL  ATTACHED-" in corrected:
+		#to be implemented, low priority
 		pass
 
-	toEmail(decoded)
+	toEmail(corrected)
 
 def toEmail(text):
 	decodedeml = email.message_from_string(text)
