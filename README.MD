@@ -16,8 +16,6 @@ In case it isn't already obvious, don't do this over a repeater or during a net 
 
 ## Still to do
 
-* Make it remember your callsign
-
 * Contacts list?
 
 * Integrate it with Thunderbird
