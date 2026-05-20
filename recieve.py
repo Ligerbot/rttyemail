@@ -37,6 +37,7 @@ def listenforemail():
 			char = b""
 #	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 	proc.terminate() #clean up
+	print(str(char.decode("utf-8",errors="replace")))
 #	print(str(char))
 #	char = char.decode("utf-8", errors="replace").encode("utf-8")
 #	print(str(char))
