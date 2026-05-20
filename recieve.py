@@ -1,3 +1,4 @@
+import base64
 import subprocess
 import reedsolo #reed solomon error correction
 import local_libraries.fskmodem as fskmodem
@@ -10,89 +11,49 @@ import sounddevice as sd
 import queue
 
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
-rsc = reedsolo.RSCodec(20, c_exp=7)
+#rsc = reedsolo.RSCodec(20, c_exp=7)
+rsc = reedsolo.RSCodec(20)
 #modem.MTU = 10000
 
 def listenforemail():
+	global char
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--rx', '300', '--confidence', '0.1', '--sync-byte', '0x23', '-q'],
+		['minimodem', '--rx', '300', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
 	char = b""
 	while not b"!<" in char:
-		char = char + proc.stdout.read(1) #.decode("utf-8", errors="replace"))
+#		char = char + proc.stdout.read(1) #.decode("utf-8", errors="replace"))
+
+		#claude helped with the following two lines
+		bits = proc.stdout.read(9).strip()  # 8 bits + newline
+		char = char + bytes([int(bits[::-1], 2)])
+
 		if b"!>" in char:
-			print("Recieving Frame")
+			print("Recieving Potential Frame")
 			char = b""
+#	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 	proc.terminate() #clean up
-	print(str(char))
-	char = char.decode("utf-8", errors="backslashreplace").encode("utf-8")
-	print(str(char))
-	stripped = char.replace(b"!<", b"").replace(b">!", b"")
-	print(stripped.decode("utf-8", errors="ignore"))
-	fixed = rsc.decode(stripped)[0]
-	print("Fixed: " + str(fixed).decode("utf-8"))
+#	print(str(char))
+#	char = char.decode("utf-8", errors="replace").encode("utf-8")
+#	print(str(char))
+	stripped = char.replace(b"!<", b"").replace(b"!>", b"")
+	doubletrouble = stripped.split(b"<b64 parity start>")
+	text = doubletrouble[0]
+	parity = base64.b64decode(doubletrouble[1])
+	full = text + parity
+#	print(stripped.decode("utf-8", errors="ignore"))
+#	print(stripped)
+	fixed = rsc.decode(full)[0]
+	print("Recieved the following email: \n" + str(fixed.decode("utf-8")))
 #	print(str(fixed.decode("utf-8")))
 try:
 	listenforemail()
+except reedsolo.ReedSolomonError as e:
+	print("Failed to apply FEC to the recieved email. It will likely have corruption in it")
+	print("Recieved the following unfixable email: \n" + str(char.decode("utf-8", errors="replace")))
 finally:
 	print("Killing off minimodem")
 	proc.terminate()
-def callback(sounddataa):
-	sounddataa = sounddataa.lstrip(b'\x23')
-	unhexed = bytes.fromhex(sounddataa.decode("utf-8"))
-	print(unhexed)
-	corrected = rsc.decode(unhexed)[0].decode("utf-8")
-	print("Debug output: " + corrected)
-	if "-SSTV  SIGNAL  ATTACHED-" in corrected:
-		#to be implemented, low priority
-		pass
-
-	toEmail(corrected)
-
-def toEmail(text):
-	decodedeml = email.message_from_string(text)
-	msg = decodedeml
-	print("\n")
-	print("\n")
-	print("Recieved the following email:")
-	print(msg['From'])
-	print(msg['To'])
-	print(msg['Subject'])
-	print(msg.get_payload())
-	print("Done decoding email")
-decoded = modem.set_rx_callback(callback)
-modem.start()
-print("Waiting for email to be sent")
-while True:
-	#keep the decoder alive
-	time.sleep(1)
-
-
-#keeping for when I re  add the sstv decoder.
-#
-#						print(char, end='', flush=True)
-#						if "---END  RTTY  EMAIL---" in decodedemail:
-#							toEmail(decodedemail)
-#							decodedemail = ""
-#						if "---START  RTTY  EMAIL---" in decodedemail:
-#							decodedemail = decodedemail.strip("---START  RTTY  EMAIL---")
-#							print("Receiving possible email now")
-#						if "-SSTV  SIGNAL  ATTACHED-" in decodedemail:
-#							stream = sd.InputStream(samplerate=44100, channels=1, dtype='float32', callback=callback2)
-#							stream.start()
-#							print("Listening for SSTV signal. If there is none, restart program and try recieving again.")
-#							time.sleep(40)
-#							stream.stop()
-#							audio = np.concatenate(chunks)
-#							sf.write('local_libraries/output.wav', audio, 44100)
-#							mysstv.decode()
-#							print("Check for attachment.png in the working directory")
-#
-#					bit_pos += 8
-#				else:
-#					bit_pos += 1
-#
-#	waveFile.close()

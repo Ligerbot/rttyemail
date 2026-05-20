@@ -1,3 +1,4 @@
+import base64
 import subprocess
 import reedsolo
 import numpy as np
@@ -7,7 +8,6 @@ import PIL.Image
 import sounddevice as sd
 import soundfile as sf
 #import local_libraries.pyrtty as pyrtty
-import local_libraries.fskmodem as fskmodem #sudo apt install minimodem first though
 from email.message import EmailMessage
 import email.utils
 import time
@@ -23,8 +23,8 @@ def transmit(text):
 	proc.stdin.close()
 	proc.wait()
 
-modem = fskmodem.Modem(baudrate=125)
-rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+#rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+rsc = reedsolo.RSCodec(20) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -56,18 +56,26 @@ if attachments == "y":
 	attachmentdata = "---SSTV SIGNAL ATTACHED---"
 preamble = b"\x23" * 32 #important otherwise it won't decode right.
 #intermediate = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
-intermediate = "!>!>!>---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
-
+intermediate = "---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
+#print("Intermediate: " + str(intermediate))
+#print(rsc.encode(intermediate.encode("utf-8")))
+#print("rsc'ed: " + str(rsc.encode(intermediate.encode("utf-8"))))
 reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
-email = preamble + reedsoloedEmail + "!<!<!<".encode("utf-8")
-
-print("Sending the following email over RTTY now: \n" + str(email))
+text = reedsoloedEmail[:-20]
+parity = base64.b64encode(reedsoloedEmail[-20:])
+#print("Reedsoloedemail: " + str(reedsoloedEmail))
+email = preamble + "!>!>!>".encode("utf-8") + text + b"<b64 parity start>" + parity + "!<!<!<".encode("utf-8")
+#print("Email: " + str(email))
+print("Sending the following email over RTTY now:")
+print(email)
+print("Total length: ", len(reedsoloedEmail))
 
 #modem.send(email.as_bytes())
 
 #modem.send(email)
 try:
 	transmit(email)
+	proc.terminate()
 	print("Done")
 
 #print(msg.as_string())
@@ -85,3 +93,5 @@ try:
 #sd.wait()
 finally:
 	proc.terminate()
+	proc.terminate()
+	print("Killed minimodem")
