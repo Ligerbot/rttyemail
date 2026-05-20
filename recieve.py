@@ -12,7 +12,7 @@ import queue
 
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
 #rsc = reedsolo.RSCodec(20, c_exp=7)
-rsc = reedsolo.RSCodec(20)
+rsc = reedsolo.RSCodec(50)
 #modem.MTU = 10000
 
 def listenforemail():
@@ -50,7 +50,8 @@ def listenforemail():
 	print("Recieved the following email: \n" + str(fixed.decode("utf-8")))
 #	print(str(fixed.decode("utf-8")))
 try:
-	listenforemail()
+	while True:
+		listenforemail()
 except reedsolo.ReedSolomonError as e:
 	print("Failed to apply FEC to the recieved email. It will likely have corruption in it")
 	print("Recieved the following unfixable email: \n" + str(char.decode("utf-8", errors="replace")))
