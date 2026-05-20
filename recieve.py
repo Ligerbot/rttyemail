@@ -11,6 +11,17 @@ import soundfile as sf
 import sounddevice as sd
 import queue
 
+if not os.path.exists("callsign.txt"):
+        callsign = input("Callsign: ")
+        with open("callsign.txt", "w") as g:
+                g.write(callsign)
+                g.close()
+else:
+        with open("callsign.txt", "r") as f:
+                callsign = f.read()
+                f.close()
+print("Recieving emails as " + callsign)
+
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
 #msg = EmailMessage()
 #rsc = reedsolo.RSCodec(20, c_exp=7)

@@ -1,3 +1,4 @@
+import os
 import base64
 import subprocess
 import reedsolo
@@ -27,9 +28,20 @@ def transmit(text):
 rsc = reedsolo.RSCodec(70) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 msg = EmailMessage()
 
+if not os.path.exists("callsign.txt"):
+	callsign = input("Callsign: ")
+	with open("callsign.txt", "w") as g:
+		g.write(callsign)
+		g.close()
+else:
+	with open("callsign.txt", "r") as f:
+		callsign = f.read()
+		f.close()
 print("Composing RTTY email")
-msg['From'] = input("Callsign: ")
-msg['To'] = input("Callsign to send email too: ")
+
+print("From: " + callsign)
+msg['From'] = callsign
+msg['To'] = input("To: ")
 msg['Subject'] = input("Subject: ")
 msg['Date'] = email.utils.formatdate(localtime=True)
 #msg['Message-ID'] = email.utils.make_msgid(domain='example.com')
