@@ -32,7 +32,7 @@ def listenforemail():
 		char = char + bytes([int(bits[::-1], 2)])
 
 		if b"!>" in char:
-			print("Recieving Potential Frame")
+			print("\033[92m" + "Recieving Potential Email" + "\033[0m")
 			char = b""
 #	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 	proc.terminate() #clean up
@@ -47,14 +47,15 @@ def listenforemail():
 #	print(stripped.decode("utf-8", errors="ignore"))
 #	print(stripped)
 	fixed = rsc.decode(full)[0]
-	print("Recieved the following email: \n" + str(fixed.decode("utf-8")))
+	print("\033[92m" + "Recieved an email and corrected any errors" + "\033[0m")
+	print(str(fixed.decode("utf-8")))
 #	print(str(fixed.decode("utf-8")))
 try:
 	while True:
 		listenforemail()
 except reedsolo.ReedSolomonError as e:
-	print("Failed to apply FEC to the recieved email. It will likely have corruption in it")
-	print("Recieved the following unfixable email: \n" + str(char.decode("utf-8", errors="replace")))
+	print("\033[91m" + "Unable to correct recieved email. Printing out what was possible to decode:" + "\033[0m")
+	print(str(char.decode("utf-8", errors="replace")))
 finally:
 	print("Killing off minimodem")
 	proc.terminate()
