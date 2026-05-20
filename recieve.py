@@ -1,3 +1,4 @@
+import re #regex is torture
 import base64
 import subprocess
 import reedsolo #reed solomon error correction
@@ -13,14 +14,14 @@ import queue
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
 #msg = EmailMessage()
 #rsc = reedsolo.RSCodec(20, c_exp=7)
-rsc = reedsolo.RSCodec(50)
+rsc = reedsolo.RSCodec(70)
 #modem.MTU = 10000
 
 def listenforemail():
 	global char
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--rx', '300', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
+		['minimodem', '--rx', '520', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -41,13 +42,16 @@ def listenforemail():
 #	print(str(char))
 #	char = char.decode("utf-8", errors="replace").encode("utf-8")
 #	print(str(char))
-	stripped = char.replace(b"!<", b"").replace(b"!>", b"")
+	stripped = char.replace(b"!<", b"").replace(b"!>", b"").strip()
 #	doubletrouble = stripped.split(b"<b64 parity>\n")
 	doubletrouble = stripped.split(b"<b64>\n")
 	text = doubletrouble[0]
-	parity = base64.b64decode(doubletrouble[-1].strip(), validate=False)
+	plzwork = re.sub(b'[^A-Za-z0-9+/=]', b'', doubletrouble[-1].strip())
+	print(str(plzwork))
+	parity = base64.b64decode(plzwork, validate=False)
 	print(str(parity))
 	full = text + parity
+
 #	print(stripped.decode("utf-8", errors="ignore"))
 #	print(stripped)
 	fixed = rsc.decode(full)[0]

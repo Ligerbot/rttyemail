@@ -15,7 +15,7 @@ import time
 def transmit(text):
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--tx', '300'],
+		['minimodem', '--tx', '520', '--sync-byte', '0x23'],
 		stdin=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -24,7 +24,7 @@ def transmit(text):
 	proc.wait()
 
 #rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
-rsc = reedsolo.RSCodec(50) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+rsc = reedsolo.RSCodec(70) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 msg = EmailMessage()
 
 print("Composing RTTY email")
@@ -61,8 +61,8 @@ intermediate = "---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMA
 #print(rsc.encode(intermediate.encode("utf-8")))
 #print("rsc'ed: " + str(rsc.encode(intermediate.encode("utf-8"))))
 reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
-text = reedsoloedEmail[:-50]
-parity = base64.b64encode(reedsoloedEmail[-50:])
+text = reedsoloedEmail[:-70]
+parity = base64.b64encode(reedsoloedEmail[-70:])
 #print("Reedsoloedemail: " + str(reedsoloedEmail))
 email = preamble + "!>!>!>".encode("utf-8") + text + b"<b64>\n<b64>\n<b64>\n" + parity + "!<!<!<".encode("utf-8")
 #print("Email: " + str(email))
