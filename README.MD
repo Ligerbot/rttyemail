@@ -22,8 +22,6 @@ In case it isn't already obvious, don't do this over a repeater or during a net 
 
 * Integrate it with Thunderbird
 
-* Error Correction
-
 * GUI or TUI
 
 * Selective Email Reception (Only showing emails addressed to your callsign)

@@ -11,6 +11,7 @@ import sounddevice as sd
 import queue
 
 modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
+#msg = EmailMessage()
 #rsc = reedsolo.RSCodec(20, c_exp=7)
 rsc = reedsolo.RSCodec(50)
 #modem.MTU = 10000
