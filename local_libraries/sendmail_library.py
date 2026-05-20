@@ -35,7 +35,7 @@ def transmit(text):
 	proc.terminate()
 
 #rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
-def create():
+def create(to, subject, body):
 	global proc
 	if not os.path.exists("callsign.txt"):
 		callsign = input("Callsign: ")
@@ -48,17 +48,17 @@ def create():
 			f.close()
 
 
-	print("Composing RTTY email")
-	print("From: " + callsign)
+#	print("Composing RTTY email")
+#	print("From: " + callsign)
 	msg['From'] = callsign
-	msg['To'] = input("To: ")
-	msg['Subject'] = input("Subject: ")
+	msg['To'] = to
+	msg['Subject'] = subject
 	msg['Date'] = email.utils.formatdate(localtime=True)
 	#msg['Message-ID'] = email.utils.make_msgid(domain='example.com')
-	body = input("Message Body: ")
 	msg.set_payload(body)
 
-	attachments = input("Do you want to attach an image? (y/n): ")
+#	attachments = input("Do you want to attach an image? (y/n): ")
+	attachments = ""
 	attachmentdata = ""
 	if attachments == "y":
 		location = input("Enter path to image: ")
