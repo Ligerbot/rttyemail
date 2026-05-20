@@ -2,14 +2,10 @@ import re #regex is torture
 import base64
 import subprocess
 import reedsolo #reed solomon error correction
-import local_libraries.fskmodem as fskmodem
 import time
 import local_libraries.mysstv as mysstv #not pysstv, MY sstv!
 import email
 import os
-import soundfile as sf
-import sounddevice as sd
-import queue
 
 if not os.path.exists("callsign.txt"):
         callsign = input("Callsign: ")
@@ -22,7 +18,6 @@ else:
                 f.close()
 print("Recieving emails as " + callsign)
 
-modem = fskmodem.Modem(baudrate=125, confidence = 0.1, sync_byte= '0x23', start=False)
 #msg = EmailMessage()
 #rsc = reedsolo.RSCodec(20, c_exp=7)
 rsc = reedsolo.RSCodec(70)

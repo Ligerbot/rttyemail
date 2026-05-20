@@ -30,3 +30,6 @@ In case it isn't already obvious, don't do this over a repeater or during a net 
 
 Email me (ilan@snackmail.cc) if you have any ideas.
 
+Thanks to the authors of this webpage for a tutorial on how to use ncurses
+
+https://hyperskill.org/blog/post/introduction-to-the-curses-library-in-python-text-based-interfaces 

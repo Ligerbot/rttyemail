@@ -1,0 +1,111 @@
+import email
+import os
+import base64
+import subprocess
+import reedsolo
+import numpy as np
+import pysstv.color as pysstv
+import PIL
+import PIL.Image
+import sounddevice as sd
+import soundfile as sf
+#import local_libraries.pyrtty as pyrtty
+from email.message import EmailMessage
+import email.utils
+import time
+
+def init():
+	global rsc
+	global msg
+	rsc = reedsolo.RSCodec(70) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+	msg = EmailMessage()
+def transmit(text):
+	global proc
+	proc = subprocess.Popen(
+		['minimodem', '--tx', '900', '--sync-byte', '0x23'],
+		stdin=subprocess.PIPE,
+		stderr=subprocess.DEVNULL
+	)
+	proc.stdin.write(text)
+	proc.stdin.close()
+	proc.wait()
+	proc.terminate()
+	proc.terminate()
+	proc.terminate()
+	proc.terminate()
+
+#rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
+def create():
+	global proc
+	if not os.path.exists("callsign.txt"):
+		callsign = input("Callsign: ")
+		with open("callsign.txt", "w") as g:
+			g.write(callsign)
+			g.close()
+	else:
+		with open("callsign.txt", "r") as f:
+			callsign = f.read()
+			f.close()
+
+
+	print("Composing RTTY email")
+	print("From: " + callsign)
+	msg['From'] = callsign
+	msg['To'] = input("To: ")
+	msg['Subject'] = input("Subject: ")
+	msg['Date'] = email.utils.formatdate(localtime=True)
+	#msg['Message-ID'] = email.utils.make_msgid(domain='example.com')
+	body = input("Message Body: ")
+	msg.set_payload(body)
+
+	attachments = input("Do you want to attach an image? (y/n): ")
+	attachmentdata = ""
+	if attachments == "y":
+		location = input("Enter path to image: ")
+		image = PIL.Image.open(location)
+		target = (320, 240)
+		image.thumbnail(target, PIL.Image.LANCZOS)
+		newimage = PIL.Image.new("RGB", target)
+		box = ((target[0] - image.size[0]) // 2, (target[1] - image.size[1]) // 2)
+		newimage.paste(image, box)
+		image = newimage
+		prompts = input("Show image(y/n)? ")
+		if prompts == "y":
+			image.show()
+		converted = pysstv.Robot36(image, 44100, 16)
+		samples = list(converted.gen_samples())
+		sstv = np.array(samples, dtype=np.int16)
+		attachmentdata = "---SSTV SIGNAL ATTACHED---"
+	preamble = b"\x23" * 32 #important otherwise it won't decode right.
+#intermediate = "---START RTTY EMAIL---\n---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n---END RTTY EMAIL---\n" + attachmentdata
+	intermediate = "---START RTTY EMAIL---\n" + msg.as_string() + "\n---END RTTY EMAIL---\n" + attachmentdata #don't need redundant ---START RTTY EMAIL---'s
+#print("Intermediate: " + str(intermediate))
+#print(rsc.encode(intermediate.encode("utf-8")))
+#print("rsc'ed: " + str(rsc.encode(intermediate.encode("utf-8"))))
+	reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
+	text = reedsoloedEmail[:-70]
+	parity = base64.b64encode(reedsoloedEmail[-70:])
+#print("Reedsoloedemail: " + str(reedsoloedEmail))
+	toemail = preamble + "!>!>!>".encode("utf-8") + text + b"64>\n\n64>\n\n64>\n\n" + parity + "!<!<!<".encode("utf-8")
+#print("Email: " + str(email))
+#	print("Sending the following email over RTTY now:")
+	return toemail
+	print("Total length: ", len(reedsoloedEmail))
+#modem.send(email.as_bytes())
+
+#modem.send(email)
+init()
+
+#print(msg.as_string())
+#baudot = pyrtty.text_to_baudot(email)
+#signal = pyrtty.baudot_to_afsk(baudot)
+#pyrtty.play_afsk_signal(signal)
+#	time.sleep(0.5)
+#	if attachments == "y":
+#		print("Playing SSTV now")
+#		sd.play(sstv, 44100)
+#		sd.wait()
+#print("Playing morse code with link to github. May be required by law to show how it works so people can decode it")
+#data, samplerate = sf.read('protocol_specifications_link.wav')
+#sd.play(data, samplerate)
+#sd.wait()
