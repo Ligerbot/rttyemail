@@ -64,7 +64,7 @@ reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
 text = reedsoloedEmail[:-50]
 parity = base64.b64encode(reedsoloedEmail[-50:])
 #print("Reedsoloedemail: " + str(reedsoloedEmail))
-email = preamble + "!>!>!>".encode("utf-8") + text + b"<b64 parity start>" + parity + "!<!<!<".encode("utf-8")
+email = preamble + "!>!>!>".encode("utf-8") + text + b"<b64>\n<b64>\n<b64>\n" + parity + "!<!<!<".encode("utf-8")
 #print("Email: " + str(email))
 print("Sending the following email over RTTY now:")
 print(email)

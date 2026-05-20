@@ -42,9 +42,11 @@ def listenforemail():
 #	char = char.decode("utf-8", errors="replace").encode("utf-8")
 #	print(str(char))
 	stripped = char.replace(b"!<", b"").replace(b"!>", b"")
-	doubletrouble = stripped.split(b"<b64 parity start>")
+#	doubletrouble = stripped.split(b"<b64 parity>\n")
+	doubletrouble = stripped.split(b"<b64>\n")
 	text = doubletrouble[0]
-	parity = base64.b64decode(doubletrouble[1])
+	parity = base64.b64decode(doubletrouble[-1].strip(), validate=False)
+	print(str(parity))
 	full = text + parity
 #	print(stripped.decode("utf-8", errors="ignore"))
 #	print(stripped)
