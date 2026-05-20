@@ -18,10 +18,13 @@ rsc = reedsolo.RSCodec(70)
 #modem.MTU = 10000
 
 def listenforemail():
+	global plzwork
 	global char
+	global text
+	global parity
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--rx', '520', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
+		['minimodem', '--rx', '900', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -38,18 +41,17 @@ def listenforemail():
 			char = b""
 #	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 	proc.terminate() #clean up
-	print(str(char.decode("utf-8",errors="replace")))
+#	print(str(char.decode("utf-8",errors="replace")))
 #	print(str(char))
 #	char = char.decode("utf-8", errors="replace").encode("utf-8")
 #	print(str(char))
 	stripped = char.replace(b"!<", b"").replace(b"!>", b"").strip()
 #	doubletrouble = stripped.split(b"<b64 parity>\n")
-	doubletrouble = stripped.split(b"<b64>\n")
+	doubletrouble = stripped.split(b"64>\n\n")
 	text = doubletrouble[0]
 	plzwork = re.sub(b'[^A-Za-z0-9+/=]', b'', doubletrouble[-1].strip())
-	print(str(plzwork))
 	parity = base64.b64decode(plzwork, validate=False)
-	print(str(parity))
+#	print(str(parity))
 	full = text + parity
 
 #	print(stripped.decode("utf-8", errors="ignore"))
@@ -63,7 +65,15 @@ try:
 		listenforemail()
 except reedsolo.ReedSolomonError as e:
 	print("\033[91m" + "Unable to correct recieved email. Printing out what was possible to decode:" + "\033[0m")
+	print("I recieved this parity string: ")
+	print(str(plzwork))
+	print("The parity after being decoded from base 64: ")
+	print(str(parity))
+	print("I recieved this text: ")
+	print(str(text))
 	print(str(char.decode("utf-8", errors="replace")))
 finally:
 	print("Killing off minimodem")
 	proc.terminate()
+	print("Stopping")
+	exit(0)

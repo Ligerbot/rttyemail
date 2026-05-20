@@ -15,7 +15,7 @@ import time
 def transmit(text):
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--tx', '520', '--sync-byte', '0x23'],
+		['minimodem', '--tx', '900', '--sync-byte', '0x23'],
 		stdin=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -64,7 +64,7 @@ reedsoloedEmail = rsc.encode(intermediate.encode("utf-8")) #error correction
 text = reedsoloedEmail[:-70]
 parity = base64.b64encode(reedsoloedEmail[-70:])
 #print("Reedsoloedemail: " + str(reedsoloedEmail))
-email = preamble + "!>!>!>".encode("utf-8") + text + b"<b64>\n<b64>\n<b64>\n" + parity + "!<!<!<".encode("utf-8")
+email = preamble + "!>!>!>".encode("utf-8") + text + b"64>\n\n64>\n\n64>\n\n" + parity + "!<!<!<".encode("utf-8")
 #print("Email: " + str(email))
 print("Sending the following email over RTTY now:")
 print(email)
