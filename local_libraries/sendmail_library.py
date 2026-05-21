@@ -18,11 +18,10 @@ def init():
 	global rsc
 	global msg
 	rsc = reedsolo.RSCodec(70) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
-	msg = EmailMessage()
 def transmit(text):
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--tx', '900', '--sync-byte', '0x23'],
+		['minimodem', '--tx', '300', '--sync-byte', '0x23'],
 		stdin=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -37,6 +36,7 @@ def transmit(text):
 #rsc = reedsolo.RSCodec(20, c_exp=7) #if using a noisy connection increase this but make sure the other parties also know what to increase this too.
 def create(to, subject, body):
 	global proc
+	msg = EmailMessage()
 	if not os.path.exists("callsign.txt"):
 		callsign = input("Callsign: ")
 		with open("callsign.txt", "w") as g:

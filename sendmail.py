@@ -16,7 +16,7 @@ import time
 def transmit(text):
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--tx', '900', '--sync-byte', '0x23'],
+		['minimodem', '--tx', '300', '--sync-byte', '0x23'],
 		stdin=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)

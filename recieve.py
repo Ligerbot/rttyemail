@@ -30,7 +30,7 @@ def listenforemail():
 	global parity
 	global proc
 	proc = subprocess.Popen(
-		['minimodem', '--rx', '900', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
+		['minimodem', '--rx', '300', '--confidence', '0.1', '--sync-byte', '0x23', '-q', '--binary-output'],
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL
 	)
@@ -45,6 +45,7 @@ def listenforemail():
 		if b"!>" in char:
 			print("\033[92m" + "Recieving Potential Email" + "\033[0m")
 			char = b""
+	print("Still alive")
 #	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 	proc.terminate() #clean up
 #	print(str(char.decode("utf-8",errors="replace")))
