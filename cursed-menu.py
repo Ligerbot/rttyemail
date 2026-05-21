@@ -1,7 +1,10 @@
+
 import time
 import curses
 import curses.textpad
 import local_libraries.sendmail_library as sendmail
+import local_libraries.recieve as recieve
+recieve.init()
 sendmail.init()
 
 menu = ['Inbox', 'Send', 'Monitor', 'Settings', 'Exit']
@@ -74,6 +77,7 @@ def send(stdscr):
 	current_row = 0
 	stdscr.keypad(True)
 	print_menu(stdscr, current_row, False, sendmenu)
+	show = False
 	while True:
 		key = stdscr.getch()
 		if key == curses.KEY_UP and current_row > 0:
@@ -86,9 +90,12 @@ def send(stdscr):
 				stdscr.addstr(0,0,"RTTY Email Client > Send > Waiting To Send", curses.A_REVERSE)
 				stdscr.addstr(2,0,"Press enter to send the email")
 #				stdscr.addstr(3,0,emails.decode("utf-8", errors="replace"))
+				if show:
+					stdscr.addstr(3,0,emails.decode("utf-8", errors="replace"))
 				while True:
 					key = stdscr.getch()
 					if key == curses.KEY_ENTER or key in [10, 13]:
+						stdscr.addstr(0,0,"RTTY Email Client > Send > Sending In Progress...", curses.A_REVERSE)
 						stdscr.addstr(1,0,"Sending in progress, don't exit the program until finished...")
 						stdscr.refresh()
 						sendmail.transmit(emails)
@@ -98,6 +105,7 @@ def send(stdscr):
 				time.sleep(0.7)
 				break
 			if current_row == 1:
+				show = True
 				stdscr.clear()
 				stdscr.addstr(0,0,"RTTY Email Client > Send > View Email", curses.A_REVERSE)
 				stdscr.addstr(3,0,emails.decode("utf-8", errors="replace"))
@@ -115,11 +123,57 @@ def monitor(stdscr):
 	stdscr.addstr(0,0, "RTTY Email Client > Monitor", curses.A_REVERSE)
 	curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_BLUE)
 	BLUE_BLACK = curses.color_pair(1)
-	stdscr.addstr(1, 0, 'test', BLUE_BLACK | curses.A_BOLD)
+#	stdscr.addstr(1, 0, 'test', BLUE_BLACK | curses.A_BOLD)
 	stdscr.refresh()
-	emails = "To be added"
-	stdscr.addstr(10,10, str(emails))
-	stdscr.getch()
+	height, width = stdscr.getmaxyx()
+#	emails = [
+#		"test 1",
+#		"test 2",
+#		"test3",
+#		"test 4"
+#	]
+	emails = ["Start Monitoring"]
+	selected = 0
+	while True:
+		centerX = width // 2
+		centerY = height // 2
+		i = 0
+		stdscr.addstr(5, centerX - 10, "Listening for any emails")
+		stdscr.refresh()
+		output = recieve.listenforemail(stdscr)
+		msg = email.message_from_string(output)
+		emails.append(str(msg['From'] + " - " + msg['Subject']))
+
+		for THISemail in emails:
+			if i == selected:
+				stdscr.addstr(5 + i, centerX, THISemail, curses.A_REVERSE)
+			else:
+				stdscr.addstr(5 + i,centerX,THISemail, curses.COLOR_BLUE)
+			stdscr.refresh()
+			i = i + 1
+		key = stdscr.getch()
+		if key == curses.KEY_DOWN and selected < len(emails) - 1:
+			selected = selected + 1
+		if key == curses.KEY_UP and selected > 0:
+			selected = selected - 1
+		if key == curses.KEY_ENTER:
+			if selected == 0:
+				output = recieve.listenforemail(stdscr)
+				msg = email.message_from_string(output)
+				emails.append(str(msg['From'] + " - " + msg['Subject']))
+			else:
+				stdscr.clear()
+				stdscr.addstr(0,0,"RTTY Email Client > Monitor > Email Reader", curses.A_REVERSE)
+				stdscr.refresh()
+		if output == "user-exit":
+			stdscr.addstr(1,0,"Exiting, one second...")
+			stdscr.refresh()
+			break
+#			while True:
+#				stdscr.addstr(
+
+
+#	stdscr.getch()
 	stdscr.clear()
 def settings(stdscr):
 	stdscr.clear()
