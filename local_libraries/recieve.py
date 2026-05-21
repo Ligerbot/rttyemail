@@ -8,6 +8,7 @@ import local_libraries.mysstv as mysstv #not pysstv, MY sstv!
 import email
 import os
 def init():
+	global rsc
 	if not os.path.exists("callsign.txt"):
 	        callsign = input("Callsign: ")
 	        with open("callsign.txt", "w") as g:
@@ -28,6 +29,7 @@ def listenforemail(stdscr):
 	global plzwork
 	global char
 	global text
+	global fixed
 	global parity
 	global proc
 	try:
@@ -37,7 +39,6 @@ def listenforemail(stdscr):
 			stderr=subprocess.DEVNULL
 		)
 		char = b""
-		stdscr.nodelay(True)
 		while not b"!<" in char:
 	#		char = char + proc.stdout.read(1) #.decode("utf-8", errors="replace"))
 
@@ -47,12 +48,13 @@ def listenforemail(stdscr):
 
 			if b"!>" in char:
 #				print("\033[92m" + "Recieving Potential Email" + "\033[0m")
-				char = b""
-			key = stdscr.getch()
-			if key == 27 or key == ord("q"):
-				stdscr.addstr(1,0,"Exiting, one second...")
+				stdscr.addstr(1,0,"Recieving Potential Email")
 				stdscr.refresh()
-				return "user-exit"
+				char = b""
+#			if key == 27 or key == ord("q"):
+#				stdscr.addstr(1,0,"Exiting, one second...")
+#				stdscr.refresh()
+#				return "user-exit"
 	#	print("Still alive")
 	#	print("Email before Reed-Solomon error correction: \n" + str(char.decode("utf-8", errors="replace")))
 		proc.terminate() #clean up
@@ -68,7 +70,8 @@ def listenforemail(stdscr):
 		parity = base64.b64decode(plzwork, validate=False)
 #	print(str(parity))
 		full = text + parity
-
+		stdscr.addstr(1,0,"                                     ")
+		stdscr.refresh()
 #	print(stripped.decode("utf-8", errors="ignore"))
 #	print(stripped)
 		fixed = rsc.decode(full)[0]
@@ -79,15 +82,15 @@ def listenforemail(stdscr):
 
 	except reedsolo.ReedSolomonError as e:
 		print("\033[91m" + "Unable to correct recieved email. Printing out what was possible to decode:" + "\033[0m")
-		print("I recieved this parity string: ")
-		print(str(plzwork))
-		print("The parity after being decoded from base 64: ")
-		print(str(parity))
-		print("I recieved this text: ")
-		print(str(text))
-		print(str(char.decode("utf-8", errors="replace")))
-	finally:
+#		print("I recieved this parity string: ")
+#		print(str(plzwork))
+#		print("The parity after being decoded from base 64: ")
+#		print(str(parity))
+#		print("I recieved this text: ")
+#		print(str(text))
+#		print(str(char.decode("utf-8", errors="replace")))
+#	finally:
 #		print("Killing off minimodem")
-		proc.terminate()
+#		proc.terminate()
 #		print("Stopping")
-		exit(0)
+#		return "error"

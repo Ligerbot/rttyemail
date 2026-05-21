@@ -1,4 +1,4 @@
-
+import email
 import time
 import curses
 import curses.textpad
@@ -40,20 +40,21 @@ def send(stdscr):
 	curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_BLUE)
 	BLUE_BLACK = curses.color_pair(1)
 #	stdscr.addstr(1, 0, 'test', BLUE_BLACK | curses.A_BOLD)
-	stdscr.addstr(2,0, "To: ")
-	curses.textpad.rectangle(stdscr, 1, 4, 3, 14)
-	stdscr.addstr(5,0, "Subject: ")
-	curses.textpad.rectangle(stdscr, 4, 9, 6, 25)
+	curses.textpad.rectangle(stdscr, 1, 0, 25, 55)
+	stdscr.addstr(3,6, "To: ")
+	curses.textpad.rectangle(stdscr, 2, 10, 4, 21)
+	stdscr.addstr(6,1, "Subject: ")
+	curses.textpad.rectangle(stdscr, 5, 10, 7, 36)
 #	stdscr.addstr(12,0, "Body: ")
-	curses.textpad.rectangle(stdscr, 7, 0, 22, 50)
+	curses.textpad.rectangle(stdscr, 8, 1, 23, 51)
 #	stdscr.border(19, 30, 19, 30, 20, 30, 30, 30)
 #	textboxobj = curses.textpad.Textbox(stdscr).edit()
 #	test = textboxobj.gather()
 #	stdscr.addstr(20, 20, test)
 	stdscr.refresh()
-	to = curses.newwin(1, 9, 2, 5)
-	subject = curses.newwin(1, 15, 5, 10)
-	body = curses.newwin(14, 49, 8, 1)
+	to = curses.newwin(1, 9, 3, 12)
+	subject = curses.newwin(1, 25, 6, 11)
+	body = curses.newwin(14, 49, 9, 2)
 	box = curses.textpad.Textbox(to)
 	curses.curs_set(1)
 	box.edit()
@@ -64,7 +65,7 @@ def send(stdscr):
 	subjectField = box.gather()
 	stdscr.refresh()
 	box = curses.textpad.Textbox(body)
-	stdscr.addstr(23,0,"* CTRL + g to finish typing")
+	stdscr.addstr(24,1,"* CTRL + g to finish typing")
 	stdscr.refresh()
 	box.edit()
 	bodyField = box.gather()
@@ -119,6 +120,7 @@ def send(stdscr):
 #	stdscr.getch()
 	stdscr.clear()
 def monitor(stdscr):
+	output = ""
 	stdscr.clear()
 	stdscr.addstr(0,0, "RTTY Email Client > Monitor", curses.A_REVERSE)
 	curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_BLUE)
@@ -132,18 +134,17 @@ def monitor(stdscr):
 #		"test3",
 #		"test 4"
 #	]
-	emails = ["Start Monitoring"]
+	emails = ["Start Monitoring", "Exit"]
 	selected = 0
 	while True:
 		centerX = width // 2
 		centerY = height // 2
 		i = 0
-		stdscr.addstr(5, centerX - 10, "Listening for any emails")
+		stdscr.addstr(4, centerX - 26, "                        Press Start to Listen                           ")
 		stdscr.refresh()
-		output = recieve.listenforemail(stdscr)
-		msg = email.message_from_string(output)
-		emails.append(str(msg['From'] + " - " + msg['Subject']))
-
+#		output = recieve.listenforemail(stdscr)
+#		stdscr.addstr(0,3,str(output))
+#		msg = email.message_from_string(output)
 		for THISemail in emails:
 			if i == selected:
 				stdscr.addstr(5 + i, centerX, THISemail, curses.A_REVERSE)
@@ -156,15 +157,44 @@ def monitor(stdscr):
 			selected = selected + 1
 		if key == curses.KEY_UP and selected > 0:
 			selected = selected - 1
-		if key == curses.KEY_ENTER:
+#		stdscr.addstr(1,0,"Debug: " + str(selected) + str(len(emails)))
+#		stdscr.refresh()
+		if key == curses.KEY_ENTER or key in [10, 13]:
+			if selected == len(emails) - 1:
+				stdscr.addstr(1,0,"Exiting, one second...")
+				stdscr.refresh()
+				#exit(0)
+				break
 			if selected == 0:
+				stdscr.addstr(4, centerX - 25, "Listening for any emails (freezes screen until one is recieved)")
+				stdscr.refresh()
 				output = recieve.listenforemail(stdscr)
-				msg = email.message_from_string(output)
-				emails.append(str(msg['From'] + " - " + msg['Subject']))
+				if output != None:
+					output = output.replace("---START RTTY EMAIL---", "")
+					output = output.replace("---END RTTY EMAIL---", "")
+					msg = email.message_from_string(output.strip())
+#				emails.insert(1, str(str(msg['From']) + " - " + str(msg['Subject'])))
+				if msg['From'] == None or msg['Subject'] == None:
+					emails.insert(1, str("Unable To Decode" + " - " + "Too Many Errors"))
+				else:
+					emails.insert(1, str(str(msg['From']) + " - " + str(msg['Subject'])))
+#				stdscr.addstr(2,0,"Recieved: " + str(output))
+				stdscr.refresh()
 			else:
 				stdscr.clear()
 				stdscr.addstr(0,0,"RTTY Email Client > Monitor > Email Reader", curses.A_REVERSE)
+				reader = curses.newwin(25, 60, centerY - 12, centerX-30)
+				reader.box()
+#				curses.textpad.rectangle(reader,0,0,28,28)
+				reader.addstr(2, 2, output)
 				stdscr.refresh()
+				reader.refresh()
+				while True:
+					key = reader.getch()
+					if key == ord("q") or key == 27 or key in [10, 13]:
+						break
+				del reader
+
 		if output == "user-exit":
 			stdscr.addstr(1,0,"Exiting, one second...")
 			stdscr.refresh()
@@ -180,7 +210,16 @@ def settings(stdscr):
 	stdscr.addstr(0,0, "RTTY Email Client > Settings", curses.A_REVERSE)
 	curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
 	RED_WHITE = curses.color_pair(1)
-	stdscr.addstr(1, 0, 'test')
+	stdscr.addstr(2,0, "Callsign: ")
+	curses.textpad.rectangle(stdscr, 1, 10, 3, 23)
+	stdscr.refresh()
+	callsign = curses.newwin(1, 12, 2, 11)
+	box = curses.textpad.Textbox(callsign)
+	curses.curs_set(1)
+	box.edit()
+	newcallsign = box.gather()
+
+#	stdscr.addstr(1, 0, 'test')
 	stdscr.refresh()
 	stdscr.getch()
 	stdscr.clear()
