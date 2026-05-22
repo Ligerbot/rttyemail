@@ -22,7 +22,7 @@ In case it isn't already obvious, don't do this over a repeater or during a net 
 
 * GUI or TUI (TUI in progress as of 5/20/26)
 
-* Selective Email Reception (Only showing emails addressed to your callsign)
+* Selective Email Reception (Only showing emails addressed to your callsign) (Also in progress)
 
 * SnackMail email address that forwards emails from ham radio to internet (would require a base station connected to a computer that is always on).
 

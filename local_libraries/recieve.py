@@ -1,3 +1,4 @@
+import random
 import curses
 import re #regex is torture
 import base64
@@ -24,6 +25,15 @@ def init():
 #rsc = reedsolo.RSCodec(20, c_exp=7)
 	rsc = reedsolo.RSCodec(70)
 #modem.MTU = 10000
+def dummyrecieve(stdscr):
+	time.sleep(0.5)
+	stdscr.addstr(1,0, "Recieving dummy email for testing")
+	stdscr.refresh()
+	time.sleep(1)
+	stdscr.addstr(1,0,"                                     ")
+	stdscr.refresh()
+	randemail = f"To: {random.randint(0,10)}\nFrom: {random.randint(0,10)}\nSubject: {random.randint(0,10)}\nDate: {time.ctime()}\n\n{random.randint(10,100)}"
+	return randemail
 
 def listenforemail(stdscr):
 	global plzwork
