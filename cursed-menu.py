@@ -16,7 +16,7 @@ with open("callsign.txt", "r") as f:
 def inbox(stdscr):
 	stdscr.clear()
 	stdscr.addstr(0,0, "RTTY Email Client > Inbox", curses.A_REVERSE)
-	stdscr.addstr(15, 30, "aaaa")
+	stdscr.addstr(15, 30, "work in progress")
 	stdscr.refresh()
 	stdscr.getch()  # each this call just waits for you to press any key
 	stdscr.clear()
@@ -143,15 +143,13 @@ def monitor(stdscr, exclude):
 #		"test 4"
 #	]
 	selected = 0
+	skip = False
 	while True:
 		centerX = width // 2
 		centerY = height // 2
 		i = 0
 #		stdscr.addstr(4, centerX - 26, "                        Press Start to Listen                           ")
 #		stdscr.clear()
-		stdscr.addstr(0,0, "RTTY Email Client > Monitor", curses.A_REVERSE)
-		stdscr.addstr(2, 0, "Press Start to Listen                                                                              ")
-		stdscr.refresh()
 #		output = recieve.listenforemail(stdscr)
 #		stdscr.addstr(0,3,str(output))
 #		msg = email.message_from_string(output)
@@ -162,15 +160,21 @@ def monitor(stdscr, exclude):
 			for THISemail in emails:
 				if not str("-> " + mycallsign) in THISemail:
 					num = emails.index(THISemail)
-					stdscr.addstr(10,0,"Email Title DB: " + str(emails))
-					stdscr.addstr(11,0,"Email DB: " + str(emaildb))
-					stdscr.addstr(12,0,"Current index to be removed: " + str(num))
+					stdscr.addstr(10,0,"Callsign: " + str(mycallsign))
+					stdscr.addstr(11,0,"Email Title DB: " + str(emails))
+					stdscr.addstr(12,0,"Email DB: " + str(emaildb))
+					stdscr.addstr(13,0,"Current index to be removed: " + str(num))
 					stdscr.refresh()
-					time.sleep(1)
-#					emails.pop(num)
-#					emaildb.pop(num - 1)
+#					time.sleep(1)
+					emails.pop(num)
+					emaildb.pop(num - 1)
 #		emails = filtered
 		#this above will remove emails not addressed to you from your inbox
+		stdscr.clear()
+		stdscr.addstr(0,0, "RTTY Email Client > Monitor", curses.A_REVERSE)
+		stdscr.addstr(2, 0, "Press Start to Listen                                                                              ")
+		stdscr.refresh()
+
 		for THISemail in emails:
 			if i == selected:
 #				stdscr.addstr(5 + i, centerX, THISemail, curses.A_REVERSE)
@@ -180,7 +184,10 @@ def monitor(stdscr, exclude):
 				stdscr.addstr(5 + i, 0,THISemail, curses.COLOR_BLUE)
 			stdscr.refresh()
 			i = i + 1
-		key = stdscr.getch()
+		if not skip:
+			key = stdscr.getch()
+		else:
+			skip = False
 		if key == curses.KEY_DOWN and selected < len(emails) - 1:
 			selected = selected + 1
 		if key == curses.KEY_UP and selected > 0:
@@ -195,15 +202,17 @@ def monitor(stdscr, exclude):
 				break
 			if selected == 0:
 #				stdscr.addstr(4, centerX - 25, "Listening for any emails (freezes screen until one is recieved)")
+				stdscr.addstr(0,0,"RTTY Email Client > Monitor > Listening", curses.A_REVERSE)
 				stdscr.addstr(3, 0, "Listening for any emails")
 				stdscr.addstr(4, 0, "(freezes screen until one is recieved)")
 				stdscr.refresh()
 				try:
-					output = recieve.listenforemail(stdscr)
-#					output = recieve.dummyrecieve(stdscr)
+#					output = recieve.listenforemail(stdscr)
+					output = recieve.dummyrecieve(stdscr)
 				except Exception as e:
 					output = str(e)
 				if output != None:
+					stdscr.clear()
 					output = output.replace("---START RTTY EMAIL---", "")
 					output = output.replace("---END RTTY EMAIL---", "")
 					msg = email.message_from_string(output.strip())
@@ -214,11 +223,11 @@ def monitor(stdscr, exclude):
 #						emails.insert(1, str("Unable To Decode" + " - " + "Too Many Errors"))
 #					else:
 					if exclude and msg['To'] == mycallsign:
-						emails.insert(1, str(str(msg['From']) + " -> " + str(msg['To']).strip() + ": " + str(msg['Subject'])))
 						emaildb.insert(0, output.strip())
+						emails.insert(1, str(str(msg['From']) + " -> " + str(msg['To']).strip() + ": " + str(msg['Subject'])))
 					elif not exclude:
-						emails.insert(1, str(str(msg['From']) + " -> " + str(msg['To']).strip() + ": " + str(msg['Subject'])))
 						emaildb.insert(0, output.strip())
+						emails.insert(1, str(str(msg['From']) + " -> " + str(msg['To']).strip() + ": " + str(msg['Subject'])))
 					elif exclude and msg['To'] != mycallsign:
 						pass
 				except Exception as e:
@@ -250,7 +259,18 @@ def monitor(stdscr, exclude):
 					reader.refresh()
 					while True:
 						key = reader.getch()
-						if key == ord("q") or key == 27 or key in [10, 13]:
+						if key == curses.KEY_UP:
+							selected = selected - 1
+#							stdscr.addstr(10,0,"Moving up: " + str(selected))
+						elif key == curses.KEY_DOWN:
+							selected = selected + 1
+#							stdscr.addstr(10,0,"Moving down: " + str(selected))
+						stdscr.refresh()
+#						time.sleep(1)
+#						stdscr.clear()
+#						time.sleep(1)
+						if key == ord("q") or key == 27 or key in [10, 13] or key == curses.KEY_ENTER:
+							skip = True
 							break
 					del reader
 
@@ -323,7 +343,8 @@ def main(stdscr):
 			current_row += 1
 		elif key == curses.KEY_ENTER or key in [10, 13]:
 			if current_row == 0:
-				monitor(stdscr, True)
+				#monitor(stdscr, True)
+				inbox(stdscr)
 			if current_row == 1:
 				send(stdscr)
 			if current_row == 2:
